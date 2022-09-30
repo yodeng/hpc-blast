@@ -42,7 +42,7 @@ class HPCBlast(object):
         vmtouch = which("vmtouch")
         parallel = which("parallel")
         cmd = "%s -db %s -dbtype %s -getvolumespath | tr ' ' '\n' | %s %s -tqm 5G 2> /dev/null" % (
-            blastdb_path, self.db, blast_dbtype[self.btype], parallel, vmtouch)
+            blastdb_path, self.db, blast_dbtype[os.path.basename(self.btype)], parallel, vmtouch)
         return cmd
 
     def write_blast_sh(self, out="hpc_blast.sh"):
