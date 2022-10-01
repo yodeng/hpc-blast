@@ -1,1 +1,2 @@
-runjob
+cython
+runjob @ git+https://github.com/yodeng/runjob.git
