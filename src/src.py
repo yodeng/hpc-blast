@@ -25,17 +25,28 @@ class HPCBlast(object):
         self.chunk_res = []
         self.blast_scripts = ""
 
-    def split_fasta(self, num=10):
+    def split_fastx(self, num=10):
         self.chunk_files = {str(i): os.path.join(
             self.outdir, "chunks", "split.%05d.fa" % i) for i in range(num)}
         if os.path.isfile(self.query):
             mkdir(os.path.join(self.outdir, "chunks"))
+        fx = get_fastx_type(self.query)
         with Zopen(self.query, mode="rb") as fi, MultiFileOpen(mode="wb", **self.chunk_files) as fo:
-            for line in fi:
-                if line.startswith(b">"):
-                    n = randrange(0, num)
-                    fh = fo[n]
-                fh.write(line)
+            if fx == "fasta":
+                for line in fi:
+                    if line.startswith(b">"):
+                        n = randrange(0, num)
+                        fh = fo[n]
+                    fh.write(line)
+            elif fx == "fastq":
+                for i, line in enumerate(fi):
+                    if i % 4 == 0:
+                        n = randrange(0, num)
+                        fh = fo[n]
+                        line = b">" + line[1:]
+                    elif i % 4 > 1:
+                        continue
+                    fh.write(line)
 
     def cache_blast_db_cmd(self):
         blastdb_path = which("blastdb_path")
@@ -78,12 +89,14 @@ class HPCBlast(object):
 
     def mergs_res(self):
         if self.chunk_res:
-            mergs = "cat %s > %s" % (" ".join(self.chunk_res), self.outfile)
-            callcmd(mergs)
+            with open(self.outfile, "wb") as fo:
+                for f in self.chunk_res:
+                    with open(f, "rb") as fi:
+                        for line in fi:
+                            fo.write(line)
 
     def run(self):
-        splits = self.args.split
-        self.split_fasta(splits)
+        self.split_fastx(self.args.split)
         self.write_blast_sh()
         self.run_blast()
         self.mergs_res()

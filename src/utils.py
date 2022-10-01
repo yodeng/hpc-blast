@@ -4,6 +4,7 @@ import os
 import sys
 import gzip
 import shlex
+import signal
 import argparse
 import subprocess
 
@@ -62,6 +63,26 @@ class MultiFileOpen(object):
 def mkdir(path):
     if not os.path.isdir(path):
         os.makedirs(path)
+
+
+def get_fastx_type(fastx):
+    if (fastx.lower().endswith(".fasta") or fastx.lower().endswith(".fa") or fastx.lower().endswith(".fasta.gz")):
+        return "fasta"
+    elif (fastx.lower().endswith(".fastq") or fastx.lower().endswith(".fq") or fastx.lower().endswith(".fastq.gz")):
+        return "fastq"
+    fastx_type = "fastq"
+    with Zopen(fastx) as fi:
+        curr_line = 0
+        for line in fi:
+            if line.startswith(b">"):
+                fastx_type = "fasta"
+                break
+            elif curr_line == 4:
+                break
+            curr_line += 1
+        if curr_line == 0:
+            sys.exit("No entries in %s" % (fastx))
+    return fastx_type
 
 
 def which(program, paths=None):
