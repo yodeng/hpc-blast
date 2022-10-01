@@ -123,6 +123,8 @@ def is_exe(file_path):
 
 
 def callcmd(cmd, run=True, verbose=False):
+    if not cmd:
+        return
     if not run:
         if verbose:
             print(cmd)
