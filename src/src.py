@@ -24,6 +24,8 @@ class HPCBlast(object):
         self.chunk_files = {}
         self.chunk_res = []
         self.blast_scripts = ""
+        if not self.blast_exe or not "blast" in os.path.basename(self.blast_exe):
+            raise ArgumentsError("blast not found or not exists in command")
 
     def split_fastx(self, num=10):
         self.chunk_files = {str(i): os.path.join(

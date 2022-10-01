@@ -60,6 +60,10 @@ class MultiFileOpen(object):
             h.close()
 
 
+class ArgumentsError(Exception):
+    pass
+
+
 def mkdir(path):
     if not os.path.isdir(path):
         os.makedirs(path)
@@ -146,9 +150,7 @@ blast_dbtype = {"blastn": "nucl",
 
 def HPCBlastArg():
     parser = argparse.ArgumentParser(
-        description="hpc-blast <OPTIONS> <blast options>")
-    parser.add_argument("--blast", type=str, required=True,
-                        help='blast type or blast bin path', metavar="<str>")
+        description="hpc-blast <OPTIONS> <blast commands>", add_help=False)
     parser.add_argument("--split", type=int, default=10,
                         help='split query into num of chunks, 10 by default', metavar="<int>")
     parser.add_argument("--queue", type=str, default="all.q",
@@ -167,6 +169,10 @@ def HPCBlastArg():
                         help="run blast in localhost instead of sge", default=False)
     parser.add_argument('--version',
                         action='version', version="v" + __version__)
+    parser.add_argument("-h", '--help',
+                        action='help', help="show this help message and exit")
+    parser.add_argument("blast", type=str,
+                        help='blast command', metavar="<blast command>")
     args, unknown_args = parser.parse_known_args()
     c, o, d, q = 0, 0, 0, 0
     for a in sys.argv[1:]:
