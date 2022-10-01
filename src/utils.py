@@ -156,7 +156,7 @@ def HPCBlastArg():
     parser.add_argument("--queue", type=str, default="all.q",
                         help='sge queue, all.q by default, multi-queue can be sepreated by whitespace', nargs="*", metavar="<str>")
     parser.add_argument("--cpu", type=int, default=1,
-                        help='cpu usage for sge, 1 by default', metavar="<int>")
+                        help='cpu usage for sge, 1 by default, max(--cpu, -num_threads) will be used', metavar="<int>")
     parser.add_argument("--memory", type=int, default=1,
                         help='memory (GB) usage for sge, 1 by default', metavar="<int>")
     parser.add_argument("--num", type=int,
@@ -187,8 +187,7 @@ def HPCBlastArg():
             unknown_args.remove(a)
             q = 1
         elif c:
-            if not args.cpu:
-                args.cpu = int(a)
+            args.cpu = max(int(a), args.cpu)
             c = 0
         elif o:
             unknown_args.remove(a)
