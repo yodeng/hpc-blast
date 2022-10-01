@@ -42,20 +42,23 @@ class HPCBlast(object):
                     fh.write(line)
             elif fx == "fastq":
                 for i, line in enumerate(fi):
-                    if i % 4 == 0:
+                    x = i % 4
+                    if x == 0:
                         n = randrange(0, num)
                         fh = fo[n]
                         line = b">" + line[1:]
-                    elif i % 4 > 1:
+                    elif x > 1:
                         continue
                     fh.write(line)
 
-    def cache_blast_db_cmd(self):
+    @property
+    def cache_blast_db(self):
         blastdb_path = which("blastdb_path")
         vmtouch = which("vmtouch")
-        parallel = which("parallel")
-        cmd = "%s -db %s -dbtype %s -getvolumespath | tr ' ' '\n' | %s %s -tqm 5G 2> /dev/null" % (
-            blastdb_path, self.db, blast_dbtype[os.path.basename(self.btype)], parallel, vmtouch)
+        cmd = ""
+        if vmtouch and blastdb_path:
+            cmd = "%s -db %s -dbtype %s -getvolumespath | xargs %s -tqm 5G 2> /dev/null" % (
+                blastdb_path, self.db, blast_dbtype[os.path.basename(self.btype)], vmtouch)
         return cmd
 
     def write_blast_sh(self, out="hpc_blast.sh"):
@@ -63,7 +66,7 @@ class HPCBlast(object):
         with open(self.blast_scripts, "w") as fo:
             for _, fa in self.chunk_files.items():
                 if not os.path.getsize(fa):
-                    continue  # ignore empty query
+                    continue  # ignore empty query file
                 name = os.path.basename(fa).split(".")
                 result = os.path.join(
                     self.outdir, "results", "result."+name[1])
@@ -88,6 +91,7 @@ class HPCBlast(object):
             runsge.run(times=0)
             if not runsge.sumstatus():
                 os.kill(os.getpid(), signal.SIGTERM)
+            runsge_loger.info("hpc blast finished")
 
     def mergs_res(self):
         if self.chunk_res:
