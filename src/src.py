@@ -2,6 +2,8 @@
 
 from .utils import *
 
+__all__ = ["HPCBlast", "HPCBlastArg"]
+
 
 class HPCBlast(object):
     def __init__(self, args=None, blast_options=None):
