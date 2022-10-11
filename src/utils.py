@@ -152,19 +152,19 @@ blast_dbtype = {"blastn": "nucl",
 
 def HPCBlastArg():
     parser = argparse.ArgumentParser(
-        description="hpc-blast <OPTIONS> <blast commands>", add_help=False)
+        description="hpc-blast <OPTIONS> <blast command>", add_help=False)
     parser.add_argument("--split", type=int, default=10,
                         help='split query into num of chunks, 10 by default', metavar="<int>")
     parser.add_argument("--queue", type=str, default="all.q",
-                        help='sge queue, all.q by default, multi-queue can be sepreated by whitespace', nargs="*", metavar="<str>")
+                        help='sge queue, multi-queue can be sepreated by whitespace, all.q by default', nargs="*", metavar="<str>")
     parser.add_argument("--cpu", type=int, default=1,
                         help='cpu usage for sge, 1 by default, max(--cpu, -num_threads) will be used', metavar="<int>")
     parser.add_argument("--memory", type=int, default=1,
                         help='memory (GB) usage for sge, 1 by default', metavar="<int>")
     parser.add_argument("--num", type=int,
-                        help='max number of chunks run parallelly, default: all', metavar="<int>")
+                        help='max number of chunks run parallelly, all chunks by default', metavar="<int>")
     parser.add_argument("--output", type=str, required=True,
-                        help='hpc blast output directory', metavar="<str>")
+                        help='hpc blast output directory, required', metavar="<str>")
     parser.add_argument("--log", type=str,
                         help='append hpc-blast log info to file, sys.stdout by default', metavar="<file>")
     parser.add_argument("--local", action='store_true',
@@ -174,7 +174,7 @@ def HPCBlastArg():
     parser.add_argument("-h", '--help',
                         action='help', help="show this help message and exit")
     parser.add_argument("blast", type=str,
-                        help='blast command', metavar="<blast command>")
+                        help='blast command, required', metavar="<blast command>")
     args, unknown_args = parser.parse_known_args()
     c, o, d, q = 0, 0, 0, 0
     for a in sys.argv[1:]:

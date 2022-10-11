@@ -1,6 +1,6 @@
 # hpcblast
 
-`hpcblast`软件用于在`HPC`环境下运行`NCBI-BLAST+`套件程序，提供了简单高效的方法，通过将比对输入文件进行拆分并利用`HPC`环境加速blast查找速度。当`blast`比对输入序列较多，运行速度较慢时使用`hpcblast`有明显的性能提升。
+`hpcblast`软件为在`HPC`环境下运行`NCBI-BLAST+`套件程序提供了简单高效的方法，其通过将比对输入文件进行拆分并利用`HPC`环境加速blast查找速度。当`blast`比对输入文件序列较多，运行速度较慢时使用`hpcblast`有明显的性能提升。
 
 ### 1. 特性
 
@@ -43,18 +43,18 @@ pip3 install hpcblast -U
 $ hpc-blast -h 
 usage: hpc-blast [--split <int>] [--queue [<str> ...]] [--cpu <int>] [--memory <int>] [--num <int>] --output <str> [--log <file>] [--local] [--version] [-h] <blast command>
 
-hpc-blast <OPTIONS> <blast commands>
+hpc-blast <OPTIONS> <blast command>
 
 positional arguments:
-  <blast command>      blast command
+  <blast command>      blast command, required
 
 optional arguments:
   --split <int>        split query into num of chunks, 10 by default
-  --queue [<str> ...]  sge queue, all.q by default, multi-queue can be sepreated by whitespace
+  --queue [<str> ...]  sge queue, multi-queue can be sepreated by whitespace, all.q by default
   --cpu <int>          cpu usage for sge, 1 by default, max(--cpu, -num_threads) will be used
   --memory <int>       memory (GB) usage for sge, 1 by default
-  --num <int>          max number of chunks run parallelly, default: all
-  --output <str>       hpc blast output directory
+  --num <int>          max number of chunks run parallelly, all chunks by default
+  --output <str>       hpc blast output directory, required
   --log <file>         append hpc-blast log info to file, sys.stdout by default
   --local              run blast in localhost instead of sge
   --version            show program's version number and exit
