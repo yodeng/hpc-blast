@@ -70,9 +70,12 @@ def mkdir(path):
 
 
 def get_fastx_type(fastx):
-    if (fastx.lower().endswith(".fasta") or fastx.lower().endswith(".fa") or fastx.lower().endswith(".fasta.gz")):
+    fastx_ = fastx.lower()
+    if fastx_.endswith(".gz"):
+        fastx_ = fastx_[:-3]
+    if fastx_.endswith(".fasta") or fastx_.endswith(".fa"):
         return "fasta"
-    elif (fastx.lower().endswith(".fastq") or fastx.lower().endswith(".fq") or fastx.lower().endswith(".fastq.gz")):
+    elif fastx_.endswith(".fastq") or fastx_.endswith(".fq"):
         return "fastq"
     fastx_type = "fastq"
     with Zopen(fastx) as fi:
