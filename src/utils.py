@@ -158,7 +158,7 @@ def HPCBlastArg():
         description="hpc-blast <OPTIONS> <blast command>", add_help=False)
     parser.add_argument("--split", type=int, default=10,
                         help='split query into num of chunks, 10 by default', metavar="<int>")
-    parser.add_argument("--queue", type=str, default="all.q",
+    parser.add_argument("--queue", type=str, default=["all.q", ],
                         help='sge queue, multi-queue can be sepreated by whitespace, all.q by default', nargs="*", metavar="<str>")
     parser.add_argument("--cpu", type=int, default=1,
                         help='cpu usage for sge, 1 by default, max(--cpu, -num_threads) will be used', metavar="<int>")
