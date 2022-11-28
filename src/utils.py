@@ -158,12 +158,6 @@ def HPCBlastArg():
         description="hpc-blast <OPTIONS> <blast command>", add_help=False)
     parser.add_argument("--split", type=int, default=10,
                         help='split query into num of chunks, 10 by default', metavar="<int>")
-    parser.add_argument("--queue", type=str, default=["all.q", ],
-                        help='sge queue, multi-queue can be sepreated by whitespace, all.q by default', nargs="*", metavar="<str>")
-    parser.add_argument("--cpu", type=int, default=1,
-                        help='cpu usage for sge, 1 by default, max(--cpu, -num_threads) will be used', metavar="<int>")
-    parser.add_argument("--memory", type=int, default=1,
-                        help='memory (GB) usage for sge, 1 by default', metavar="<int>")
     parser.add_argument("--num", type=int,
                         help='max number of chunks run parallelly, all chunks by default', metavar="<int>")
     parser.add_argument("--output", type=str, required=True,
@@ -178,6 +172,13 @@ def HPCBlastArg():
                         action='help', help="show this help message and exit")
     parser.add_argument("blast", type=str,
                         help='blast command, required', metavar="<blast command>")
+    sge_group = parser.add_argument_group("sge arguments")
+    sge_group.add_argument("--queue", type=str, default=["all.q", ],
+                           help='sge queue, multi-queue can be sepreated by whitespace, all.q by default', nargs="*", metavar="<str>")
+    sge_group.add_argument("--cpu", type=int, default=1,
+                           help='cpu usage for sge, 1 by default, max(--cpu, -num_threads) will be used', metavar="<int>")
+    sge_group.add_argument("--memory", type=int, default=1,
+                           help='memory (GB) usage for sge, 1 by default', metavar="<int>")
     args, unknown_args = parser.parse_known_args()
     c, o, d, q = 0, 0, 0, 0
     for a in sys.argv[1:]:
