@@ -6,6 +6,7 @@ __all__ = ["HPCBlast", "HPCBlastArg"]
 
 
 class HPCBlast(object):
+
     def __init__(self, args=None, blast_options=None):
         self.args = args
         self.outdir = args.output
@@ -29,9 +30,51 @@ class HPCBlast(object):
         if not self.blast_exe or not "blast" in os.path.basename(self.blast_exe):
             raise ArgumentsError("blast not found or not exists in command")
 
-    def split_fastx(self, num=10):
+    def split_fastx_by_size(self, size=0):
+        self.chunk_files = {}
+        if size <= 0:
+            return
+        if os.path.isfile(self.query):
+            mkdir(os.path.join(self.outdir, "chunks"))
+        fx = get_fastx_type(self.query)
+        s = fh = 0
+        with Zopen(self.query, mode="rb") as fi:
+            if fx == "fasta":
+                for line in fi:
+                    if line.startswith(b">"):
+                        n, mod = divmod(s, size)
+                        s += 1
+                        if mod == 0:
+                            if fh:
+                                fh.close()
+                            fo = os.path.join(
+                                self.outdir, "chunks", "split.%05d.fa" % n)
+                            self.chunk_files[n] = fo
+                            fh = open(fo, "wb")
+                    fh.write(line)
+            elif fx == "fastq":
+                for i, line in enumerate(fi):
+                    x = i % 4
+                    if x == 0:
+                        n, mod = divmod(s, size)
+                        s += 1
+                        if mod == 0:
+                            if fh:
+                                fh.close()
+                            fo = os.path.join(
+                                self.outdir, "chunks", "split.%05d.fa" % n)
+                            self.chunk_files[n] = fo
+                            fh = open(fo, "wb")
+                        line = b">" + line[1:]
+                    elif x > 1:
+                        continue
+                    fh.write(line)
+        if fh:
+            fh.close()
+
+    def split_fastx_by_part(self, part=10):
         self.chunk_files = {str(i): os.path.join(
-            self.outdir, "chunks", "split.%05d.fa" % i) for i in range(num)}
+            self.outdir, "chunks", "split.%05d.fa" % i) for i in range(part)}
         if os.path.isfile(self.query):
             mkdir(os.path.join(self.outdir, "chunks"))
         fx = get_fastx_type(self.query)
@@ -39,14 +82,14 @@ class HPCBlast(object):
             if fx == "fasta":
                 for line in fi:
                     if line.startswith(b">"):
-                        n = randrange(0, num)
+                        n = randrange(0, part)
                         fh = fo[n]
                     fh.write(line)
             elif fx == "fastq":
                 for i, line in enumerate(fi):
                     x = i % 4
                     if x == 0:
-                        n = randrange(0, num)
+                        n = randrange(0, part)
                         fh = fo[n]
                         line = b">" + line[1:]
                     elif x > 1:
@@ -104,7 +147,10 @@ class HPCBlast(object):
                             fo.write(line)
 
     def run(self):
-        self.split_fastx(self.args.split)
+        if self.args.size:
+            self.split_fastx_by_size(self.args.size)
+        else:
+            self.split_fastx_by_part(self.args.split)
         self.write_blast_sh()
         self.run_blast()
         self.mergs_res()

@@ -156,8 +156,11 @@ blast_dbtype = {"blastn": "nucl",
 def HPCBlastArg():
     parser = argparse.ArgumentParser(
         description="hpc-blast <OPTIONS> <blast command>", add_help=False)
-    parser.add_argument("--split", type=int, default=10,
-                        help='split query into num of chunks, 10 by default', metavar="<int>")
+    ex_args = parser.add_mutually_exclusive_group(required=False)
+    ex_args.add_argument("--split", type=int, default=10,
+                         help='split query into num of chunks, 10 by default', metavar="<int>")
+    ex_args.add_argument("--size", type=int,
+                         help='split query into multi chunks with N sequences', metavar="<int>")
     parser.add_argument("--num", type=int,
                         help='max number of chunks run parallelly, all chunks by default', metavar="<int>")
     parser.add_argument("--output", type=str, required=True,
