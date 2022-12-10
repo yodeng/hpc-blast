@@ -14,6 +14,7 @@ from runjob.utils import Mylog
 from runjob.config import Config
 from runjob.sge_run import RunSge
 from runjob.sge import ParseSingal
+from runjob.utils import terminate_process
 
 from ._version import __version__
 
