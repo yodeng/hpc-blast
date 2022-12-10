@@ -129,12 +129,9 @@ class HPCBlast(object):
         if os.path.isfile(self.blast_scripts):
             mkdir(os.path.join(self.outdir, "logs"))
             runsge_loger = Mylog(self.args.log, "info", name=RunSge.__module__)
-            runsge = RunSge(config=conf)
-            h = ParseSingal(obj=runsge, name=self.args.jobname,
-                            mode=self.args.mode, conf=conf)
-            h.start()
-            runsge.run(times=0)
-            if not runsge.sumstatus():
+            self.runsge = RunSge(config=conf)
+            self.runsge.run(times=0)
+            if not self.runsge.sumstatus():
                 os.kill(os.getpid(), signal.SIGTERM)
             runsge_loger.info("hpc blast finished")
 
@@ -154,3 +151,15 @@ class HPCBlast(object):
         self.write_blast_sh()
         self.run_blast()
         self.mergs_res()
+
+    def __del__(self):
+        try:
+            if self.args.mode == "sge":
+                callcmd('qdel "%s*"' % self.args.jobname)
+            else:
+                for j, p in self.runsge.localprocess.items():
+                    if p.poll() is None:
+                        terminate_process(p.pid)
+                    p.wait()
+        except:
+            pass
