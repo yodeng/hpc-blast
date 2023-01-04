@@ -4,7 +4,9 @@ import os
 import sys
 import gzip
 import shlex
+import shutil
 import signal
+import tempfile
 import argparse
 import subprocess
 
@@ -164,8 +166,8 @@ def HPCBlastArg():
                          help='split query into multi chunks with N sequences', metavar="<int>")
     parser.add_argument("--num", type=int,
                         help='max number of chunks run parallelly, all chunks by default', metavar="<int>")
-    parser.add_argument("--output", type=str, required=True,
-                        help='hpc blast output directory, required', metavar="<str>")
+    parser.add_argument("--output", type=str, required=False,
+                        help='hpc blast output directory', metavar="<str>")
     parser.add_argument("--log", type=str,
                         help='append hpc-blast log info to file, sys.stdout by default', metavar="<file>")
     parser.add_argument("--local", action='store_true',
@@ -177,8 +179,8 @@ def HPCBlastArg():
     parser.add_argument("blast", type=str,
                         help='blast command, required', metavar="<blast command>")
     sge_group = parser.add_argument_group("sge arguments")
-    sge_group.add_argument("--queue", type=str, default=["all.q", ],
-                           help='sge queue, multi-queue can be sepreated by whitespace, all.q by default', nargs="*", metavar="<str>")
+    sge_group.add_argument("--queue", type=str,
+                           help='sge queue, multi-queue can be sepreated by whitespace, all access queue by default', nargs="*", metavar="<str>")
     sge_group.add_argument("--cpu", type=int, default=1,
                            help='cpu usage for sge, 1 by default, max(--cpu, -num_threads) will be used', metavar="<int>")
     sge_group.add_argument("--memory", type=int, default=1,

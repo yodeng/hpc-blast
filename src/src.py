@@ -8,8 +8,11 @@ __all__ = ["HPCBlast", "HPCBlastArg"]
 class HPCBlast(object):
 
     def __init__(self, args=None, blast_options=None):
+        self.outfile = os.path.abspath(args.outfile)
+        temp = os.path.basename(tempfile.mktemp(prefix="hpc-blast_"))
+        self.outdir = args.output or os.path.join(
+            os.path.dirname(self.outfile), temp)
         self.args = args
-        self.outdir = args.output
         self.args.mode = "sge"
         if self.args.local:
             self.args.mode = "local"
@@ -22,11 +25,11 @@ class HPCBlast(object):
         self.db = args.blast_db
         self.blast_exe = which(self.btype)
         self.query = args.query
-        self.outfile = args.outfile
         self.blast_options = blast_options
         self.chunk_files = {}
         self.chunk_res = []
         self.blast_scripts = ""
+        self.finished = False
         if not self.blast_exe or not "blast" in os.path.basename(self.blast_exe):
             raise ArgumentsError("blast not found or not exists in command")
 
@@ -135,6 +138,7 @@ class HPCBlast(object):
             if not self.runsge.sumstatus():
                 os.kill(os.getpid(), signal.SIGTERM)
             runsge_loger.info("hpc blast finished")
+            self.finished = True
 
     def mergs_res(self):
         if self.chunk_res:
