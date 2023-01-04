@@ -130,6 +130,7 @@ class HPCBlast(object):
             mkdir(os.path.join(self.outdir, "logs"))
             runsge_loger = Mylog(self.args.log, "info", name=RunSge.__module__)
             self.runsge = RunSge(config=conf)
+            self.runsge.set_rate(20)
             self.runsge.run(times=0)
             if not self.runsge.sumstatus():
                 os.kill(os.getpid(), signal.SIGTERM)
