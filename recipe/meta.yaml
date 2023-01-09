@@ -19,7 +19,7 @@ requirements:
         - cython
         - pip
     run:
-        - runjob
+        - runjob >=2.10.2
         - blast
 
 about:

@@ -32,6 +32,7 @@ class HPCBlast(object):
         self.finished = False
         if not self.blast_exe or not "blast" in os.path.basename(self.blast_exe):
             raise ArgumentsError("blast not found or not exists in command")
+        self.cleandir = not args.output
 
     def split_fastx_by_size(self, size=0):
         self.chunk_files = {}
@@ -159,6 +160,8 @@ class HPCBlast(object):
 
     def __del__(self):
         try:
+            if self.cleandir:
+                shutil.rmtree(self.outdir)
             if self.args.mode == "sge":
                 callcmd('qdel "%s*"' % self.args.jobname)
             else:
