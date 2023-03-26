@@ -10,17 +10,10 @@ class HPCBlast(object):
     def __init__(self, args=None, blast_options=None):
         self.outfile = os.path.abspath(args.outfile)
         temp = os.path.basename(tempfile.mktemp(prefix="hpc-blast_"))
-        self.outdir = args.output or os.path.join(
-            os.path.dirname(self.outfile), temp)
+        self.outdir = os.path.abspath(args.output or os.path.join(
+            os.path.dirname(self.outfile), temp))
         self.args = args
-        self.args.mode = "sge"
-        if self.args.local:
-            self.args.mode = "local"
-        self.args.jobname = "hpc_blast_%d" % os.getpid()
-        self.args.logdir = os.path.join(self.outdir, "logs")
-        self.args.workdir = os.getcwd()
-        self.args.startline = 0
-        self.args.groups = 1
+        self._create_sge_args()
         self.btype = args.blast
         self.db = args.blast_db
         self.blast_exe = which(self.btype)
@@ -33,6 +26,16 @@ class HPCBlast(object):
         if not self.blast_exe or not "blast" in os.path.basename(self.blast_exe):
             raise ArgumentsError("blast not found or not exists in command")
         self.cleandir = not args.output
+
+    def _create_sge_args(self):
+        self.args.mode = "sge"
+        if self.args.local:
+            self.args.mode = "local"
+        self.args.jobname = "hpc_blast_%d" % os.getpid()
+        self.args.logdir = os.path.join(self.outdir, "logs")
+        self.args.workdir = os.getcwd()
+        self.args.startline = 0
+        self.args.groups = 1
 
     def split_fastx_by_size(self, size=0):
         self.chunk_files = {}
@@ -132,12 +135,10 @@ class HPCBlast(object):
         conf.update_dict(**self.args.__dict__)
         if os.path.isfile(self.blast_scripts):
             mkdir(os.path.join(self.outdir, "logs"))
-            runsge_loger = Mylog(self.args.log, "info", name=RunSge.__module__)
-            self.runsge = RunSge(config=conf)
+            runsge_loger = log(self.args.log, "info", name=runsge.__module__)
+            self.runsge = runsge(config=conf)
             self.runsge.set_rate(20)
             self.runsge.run(times=0)
-            if not self.runsge.sumstatus():
-                os.kill(os.getpid(), signal.SIGTERM)
             runsge_loger.info("hpc blast finished")
             self.finished = True
 

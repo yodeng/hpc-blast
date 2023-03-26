@@ -1,2 +1,2 @@
 cython
-runjob
+runjob @ git+https://github.com/yodeng/runjob.git@master

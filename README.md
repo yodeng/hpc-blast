@@ -1,6 +1,6 @@
 # hpcblast
 
-`hpcblast`软件为在`HPC`环境下运行`NCBI-BLAST+`套件程序提供了简单高效的方法，其通过将比对输入文件进行拆分并利用`HPC`环境加速blast查找速度。当`blast`比对输入文件序列较多，运行速度较慢时使用`hpcblast`有明显的性能提升。
+`hpcblast`软件为在`HPC`环境`(Sun Grid Engine)`下运行`NCBI-BLAST+`套件程序提供了简单高效的方法，其通过将比对输入文件进行拆分并利用`HPC`环境加速blast查找速度。当`blast`比对输入文件序列较多，运行速度较慢时使用`hpcblast`有明显的性能提升。
 
 ### 1. 特性
 
@@ -41,7 +41,9 @@ pip3 install hpcblast -U
 
 ```
 $ hpc-blast -h 
-usage: hpc-blast [--split <int>] [--queue [<str> ...]] [--cpu <int>] [--memory <int>] [--num <int>] --output <str> [--log <file>] [--local] [--version] [-h] <blast command>
+usage: hpc-blast [--split <int> | --size <int>] [--num <int>] [--output <str>] [--log <file>] [--local] [--version] [-h] [--queue [<str> ...]]
+                 [--cpu <int>] [--memory <int>]
+                 <blast command>
 
 hpc-blast <OPTIONS> <blast command>
 
@@ -50,15 +52,18 @@ positional arguments:
 
 optional arguments:
   --split <int>        split query into num of chunks, 10 by default
-  --queue [<str> ...]  sge queue, multi-queue can be sepreated by whitespace, all.q by default
-  --cpu <int>          cpu usage for sge, 1 by default, max(--cpu, -num_threads) will be used
-  --memory <int>       memory (GB) usage for sge, 1 by default
+  --size <int>         split query into multi chunks with N sequences
   --num <int>          max number of chunks run parallelly, all chunks by default
-  --output <str>       hpc blast output directory, required
+  --output <str>       hpc blast output directory
   --log <file>         append hpc-blast log info to file, sys.stdout by default
   --local              run blast in localhost instead of sge
   --version            show program's version number and exit
   -h, --help           show this help message and exit
+
+sge arguments:
+  --queue [<str> ...]  sge queue, multi-queue can be sepreated by whitespace, all access queue by default
+  --cpu <int>          cpu usage for sge, 1 by default, max(--cpu, -num_threads) will be used
+  --memory <int>       memory (GB) usage for sge, 1 by default
 ```
 
 相关参数解释如下：
@@ -66,15 +71,16 @@ optional arguments:
 | 参数       | 描述                                                         |
 | ---------- | ------------------------------------------------------------ |
 | --split    | 将输入序列拆分为多少份                                       |
-| --queue    | 如果运行在`sge`环境，则传入指定的队列名，多个队列用空白隔开，默认`all.q` |
-| --cpu      | 如果运行在`sge`环境，则任务申请的`cpu`资源数，默认1，会识别`blast`参数中的`-num_thread`参数，使用较大的值 |
-| --memory   | 如果运行在`sge`环境，则任务申请的内存，默认1，单位`GB`       |
+| --size     | 将输入序列拆分，每份指定多少序列条数                         |
 | --num      | `hpcblast`任务队列，将拆分的块发送到`hpcblast`任务队列中，代表同时运行的拆分块任务数，默认全部拆分块同时运行 |
 | --output   | `hpcblast`输出目录，不存在会自动创建                         |
 | --log      | `hpcblast`输出日志文件，默认标准输出                         |
 | --local    | 强制`hpcblast`本地并发运行，不使用`sge`运行。                |
 | --version  | 打印`hpcblast`版本并退出                                     |
 | -h, --help | 打印`hpcblast`帮助并退出                                     |
+| --queue    | 如果运行在`sge`环境，则传入指定的队列名，多个队列用空白隔开，默认全部可用队列 |
+| --cpu      | 如果运行在`sge`环境，则任务申请的`cpu`资源数，默认1，会识别`blast`参数中的`-num_thread`参数，使用较大的值 |
+| --memory   | 如果运行在`sge`环境，则任务申请的内存，默认1，单位`GB`       |
 
 **说明**：
 
@@ -93,3 +99,4 @@ optional arguments:
 ```
 hpc-blast --split 200 --queue all.q test.q --num 50 --output out blastn -query test.fastq.gz -db /data/refdb -num_threads 4 -out test.blast.m6 -outfmt "6 qseqid qlen qstart qend"
 ```
+
