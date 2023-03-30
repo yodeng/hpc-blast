@@ -31,7 +31,6 @@ class HPCBlast(object):
         self.args.mode = "sge"
         if self.args.local:
             self.args.mode = "local"
-        self.args.jobname = "hpc_blast_%d" % os.getpid()
         self.args.logdir = os.path.join(self.outdir, "logs")
         self.args.workdir = os.getcwd()
         self.args.startline = 0
@@ -163,12 +162,5 @@ class HPCBlast(object):
         try:
             if self.cleandir:
                 shutil.rmtree(self.outdir)
-            if self.args.mode == "sge":
-                callcmd('qdel "%s*"' % self.args.jobname)
-            else:
-                for j, p in self.runsge.localprocess.items():
-                    if p.poll() is None:
-                        terminate_process(p.pid)
-                    p.wait()
         except:
             pass

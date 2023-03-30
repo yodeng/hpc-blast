@@ -14,7 +14,6 @@ from random import randrange
 
 from runjob import log, runsge
 from runjob.config import Config
-from runjob.utils import terminate_process
 
 from ._version import __version__
 
