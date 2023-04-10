@@ -134,11 +134,11 @@ class HPCBlast(object):
         conf.update_dict(**self.args.__dict__)
         if os.path.isfile(self.blast_scripts):
             mkdir(os.path.join(self.outdir, "logs"))
-            runsge_loger = log(self.args.log, "info", name=runsge.__module__)
-            self.runsge = runsge(config=conf)
-            self.runsge.set_rate(20)
-            self.runsge.run(times=0)
-            runsge_loger.info("hpc blast finished")
+            loger = log(self.args.log, "info", name=runsge.__module__)
+            job = runsge(config=conf)
+            job.set_rate(20)
+            job.run()
+            loger.info("hpc blast finished")
             self.finished = True
 
     def mergs_res(self):
