@@ -27,6 +27,22 @@ class HPCBlast(object):
             raise ArgumentsError("blast not found or not exists in command")
         self.cleandir = not args.output
 
+    def _quotation_outfmt(self):
+        if "-outfmt" in self.blast_options:
+            fmt_idx = self.blast_options.index("-outfmt")
+            op = []
+            s = fmt_idx+1
+            e = len(self.blast_options)
+            if len(self.blast_options[s].split()) == 1:
+                for n, i in enumerate(self.blast_options[s:]):
+                    if i.startswith("-"):
+                        e = s + n - 1
+                        break
+                    op.append(i.strip("'").strip('"'))
+                else:
+                    e = s + n
+                self.blast_options[s:e+1] = [" ".join(op)]
+
     def _create_sge_args(self):
         self.args.mode = "sge"
         if self.args.local:
@@ -114,6 +130,7 @@ class HPCBlast(object):
 
     def write_blast_sh(self, out="hpc_blast.sh"):
         self.blast_scripts = os.path.join(self.outdir, out)
+        self._quotation_outfmt()
         with open(self.blast_scripts, "w") as fo:
             for _, fa in self.chunk_files.items():
                 if not os.path.getsize(fa):
