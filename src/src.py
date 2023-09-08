@@ -101,19 +101,20 @@ class HPCBlast(object):
         if os.path.isfile(self.query):
             mkdir(os.path.join(self.tempdir, "chunks"))
         fx = get_fastx_type(self.query)
+        num = 0
         with Zopen(self.query, mode="rb") as fi, MultiFileOpen(mode="wb", **self.chunk_files) as fo:
             if fx == "fasta":
                 for line in fi:
                     if line.startswith(b">"):
-                        n = randrange(0, part)
-                        fh = fo[n]
+                        fh = fo[num % part]
+                        num += 1
                     fh.write(line)
             elif fx == "fastq":
                 for i, line in enumerate(fi):
                     x = i % 4
                     if x == 0:
-                        n = randrange(0, part)
-                        fh = fo[n]
+                        fh = fo[num % part]
+                        num += 1
                         line = b">" + line[1:]
                     elif x > 1:
                         continue
@@ -180,8 +181,7 @@ class HPCBlast(object):
 
     def __del__(self):
         try:
-            if self.cleandir or self.finished:
-                if os.path.isdir(self.tempdir):
-                    shutil.rmtree(self.tempdir)
+            if self.finished and os.path.isdir(self.tempdir):
+                shutil.rmtree(self.tempdir)
         except:
             pass

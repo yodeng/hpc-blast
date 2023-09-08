@@ -10,8 +10,6 @@ import tempfile
 import argparse
 import subprocess
 
-from random import randrange
-
 from runjob import log, runsge
 from runjob.config import Config
 
