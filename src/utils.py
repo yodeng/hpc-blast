@@ -156,7 +156,7 @@ blast_dbtype = {
 
 def HPCBlastArg():
     parser = argparse.ArgumentParser(
-        description="hpc-blast <OPTIONS> <blast command>", add_help=False)
+        description="hpc-blast <OPTIONS> <blast command>", add_help=False, allow_abbrev=False)
     ex_args = parser.add_mutually_exclusive_group(required=False)
     ex_args.add_argument("--split", type=int, default=10,
                          help='split query into num of chunks, 10 by default', metavar="<int>")
@@ -164,8 +164,8 @@ def HPCBlastArg():
                          help='split query into multi chunks with N sequences', metavar="<int>")
     parser.add_argument("--num", type=int,
                         help='max number of chunks run parallelly, all chunks by default', metavar="<int>")
-    parser.add_argument("--output", type=str, required=False,
-                        help='hpc blast output directory', metavar="<str>")
+    parser.add_argument("--tempdir", type=str, required=False,
+                        help='hpc blast temp directory', metavar="<dir>")
     parser.add_argument("--log", type=str,
                         help='append hpc-blast log info to file, sys.stdout by default', metavar="<file>")
     parser.add_argument("--local", action='store_true',
@@ -212,4 +212,6 @@ def HPCBlastArg():
             q = 0
         elif hasattr(args, "cpu") and hasattr(args, "outfile") and hasattr(args, "blast_db") and hasattr(args, "query"):
             break
+    if not args.blast.startswith("blast"):
+        parser.error("hpc-blast argument error")
     return args, unknown_args

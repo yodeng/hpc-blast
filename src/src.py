@@ -10,7 +10,7 @@ class HPCBlast(object):
     def __init__(self, args=None, blast_options=None):
         self.outfile = os.path.abspath(args.outfile)
         temp = os.path.basename(tempfile.mktemp(prefix="hpc-blast_"))
-        self.outdir = os.path.abspath(args.output or os.path.join(
+        self.tempdir = os.path.abspath(args.tempdir or os.path.join(
             os.path.dirname(self.outfile), temp))
         self.args = args
         self._create_sge_args()
@@ -24,8 +24,9 @@ class HPCBlast(object):
         self.blast_scripts = ""
         self.finished = False
         if not self.blast_exe or not "blast" in os.path.basename(self.blast_exe):
-            raise ArgumentsError("blast not found or not exists in command")
-        self.cleandir = not args.output
+            raise ArgumentsError(
+                "blast not found in this environment")
+        self.cleandir = not args.tempdir
 
     def _quotation_outfmt(self):
         if "-outfmt" in self.blast_options:
@@ -47,7 +48,7 @@ class HPCBlast(object):
         self.args.mode = "sge"
         if self.args.local:
             self.args.mode = "local"
-        self.args.logdir = os.path.join(self.outdir, "logs")
+        self.args.logdir = os.path.join(self.tempdir, "logs")
         self.args.workdir = os.getcwd()
         self.args.startline = 0
         self.args.groups = 1
@@ -57,7 +58,7 @@ class HPCBlast(object):
         if size <= 0:
             return
         if os.path.isfile(self.query):
-            mkdir(os.path.join(self.outdir, "chunks"))
+            mkdir(os.path.join(self.tempdir, "chunks"))
         fx = get_fastx_type(self.query)
         s = fh = 0
         with Zopen(self.query, mode="rb") as fi:
@@ -70,7 +71,7 @@ class HPCBlast(object):
                             if fh:
                                 fh.close()
                             fo = os.path.join(
-                                self.outdir, "chunks", "split.%05d.fa" % n)
+                                self.tempdir, "chunks", "split.%05d.fa" % n)
                             self.chunk_files[n] = fo
                             fh = open(fo, "wb")
                     fh.write(line)
@@ -84,7 +85,7 @@ class HPCBlast(object):
                             if fh:
                                 fh.close()
                             fo = os.path.join(
-                                self.outdir, "chunks", "split.%05d.fa" % n)
+                                self.tempdir, "chunks", "split.%05d.fa" % n)
                             self.chunk_files[n] = fo
                             fh = open(fo, "wb")
                         line = b">" + line[1:]
@@ -96,9 +97,9 @@ class HPCBlast(object):
 
     def split_fastx_by_part(self, part=10):
         self.chunk_files = {str(i): os.path.join(
-            self.outdir, "chunks", "split.%05d.fa" % i) for i in range(part)}
+            self.tempdir, "chunks", "split.%05d.fa" % i) for i in range(part)}
         if os.path.isfile(self.query):
-            mkdir(os.path.join(self.outdir, "chunks"))
+            mkdir(os.path.join(self.tempdir, "chunks"))
         fx = get_fastx_type(self.query)
         with Zopen(self.query, mode="rb") as fi, MultiFileOpen(mode="wb", **self.chunk_files) as fo:
             if fx == "fasta":
@@ -129,7 +130,7 @@ class HPCBlast(object):
         return cmd
 
     def write_blast_sh(self, out="hpc_blast.sh"):
-        self.blast_scripts = os.path.join(self.outdir, out)
+        self.blast_scripts = os.path.join(self.tempdir, out)
         self._quotation_outfmt()
         with open(self.blast_scripts, "w") as fo:
             for _, fa in self.chunk_files.items():
@@ -137,34 +138,36 @@ class HPCBlast(object):
                     continue  # ignore empty query file
                 name = os.path.basename(fa).split(".")
                 result = os.path.join(
-                    self.outdir, "results", "result."+name[1])
+                    self.tempdir, "results", "result."+name[1])
                 self.chunk_res.append(result)
                 cmdline = [self.blast_exe, ] + self.blast_options
                 cmdline.extend(["-out", result, "-query", fa])
                 fo.write(shlex.join(cmdline)+"\n")
 
     def run_blast(self):
-        mkdir(os.path.join(self.outdir, "results"))
+        mkdir(os.path.join(self.tempdir, "results"))
         self.args.jobfile = self.blast_scripts
         self.args.force = True  # force to resubmit
         conf = Config()
         conf.update_dict(**self.args.__dict__)
         if os.path.isfile(self.blast_scripts):
-            mkdir(os.path.join(self.outdir, "logs"))
+            mkdir(os.path.join(self.tempdir, "logs"))
             loger = log(self.args.log, "info", name=runsge.__module__)
             job = runsge(config=conf)
             job.set_rate(20)
             job.run()
             loger.info("hpc blast finished")
-            self.finished = True
 
-    def mergs_res(self):
+    def mergs_res(self, block_size=65536):
         if self.chunk_res:
             with open(self.outfile, "wb") as fo:
                 for f in self.chunk_res:
                     with open(f, "rb") as fi:
-                        for line in fi:
-                            fo.write(line)
+                        buf = fi.read(block_size)
+                        while buf:
+                            fo.write(buf)
+                            buf = fi.read(block_size)
+            self.finished = True
 
     def run(self):
         if self.args.size:
@@ -177,7 +180,8 @@ class HPCBlast(object):
 
     def __del__(self):
         try:
-            if self.cleandir:
-                shutil.rmtree(self.outdir)
+            if self.cleandir or self.finished:
+                if os.path.isdir(self.tempdir):
+                    shutil.rmtree(self.tempdir)
         except:
             pass

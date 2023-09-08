@@ -41,7 +41,7 @@ pip3 install hpcblast -U
 
 ```
 $ hpc-blast -h 
-usage: hpc-blast [--split <int> | --size <int>] [--num <int>] [--output <str>] [--log <file>] [--local] [--version] [-h] [--queue [<str> ...]]
+usage: hpc-blast [--split <int> | --size <int>] [--num <int>] [--tempdir <dir>] [--log <file>] [--local] [--version] [-h] [--queue [<str> ...]]
                  [--cpu <int>] [--memory <int>]
                  <blast command>
 
@@ -54,7 +54,7 @@ optional arguments:
   --split <int>        split query into num of chunks, 10 by default
   --size <int>         split query into multi chunks with N sequences
   --num <int>          max number of chunks run parallelly, all chunks by default
-  --output <str>       hpc blast output directory
+  --tempdir <dir>      hpc blast temp directory
   --log <file>         append hpc-blast log info to file, sys.stdout by default
   --local              run blast in localhost instead of sge
   --version            show program's version number and exit
@@ -73,7 +73,7 @@ sge arguments:
 | --split    | 将输入序列拆分为多少份                                       |
 | --size     | 将输入序列拆分，每份指定多少序列条数                         |
 | --num      | `hpcblast`任务队列，将拆分的块发送到`hpcblast`任务队列中，代表同时运行的拆分块任务数，默认全部拆分块同时运行 |
-| --output   | `hpcblast`输出目录，不存在会自动创建                         |
+| --tempdir  | `hpcblast`临时目录，不存在会自动创建                         |
 | --log      | `hpcblast`输出日志文件，默认标准输出                         |
 | --local    | 强制`hpcblast`本地并发运行，不使用`sge`运行。                |
 | --version  | 打印`hpcblast`版本并退出                                     |
@@ -97,6 +97,6 @@ sge arguments:
 以下命令表示将`test.fastq.gz`序列随机拆分成`200`份进行`blastn`比对，任务投递到`sge`集群中，投递队列为`all.q`和`test.q`，使用资源`virtual_free=1g,num_proc=4`，允许同时运行的最大任务数为`50`个，`blastn`输出结果文件为`test.blast.m6`，`hpc-blast`输出目录为当前目录下的`out`目录。
 
 ```
-hpc-blast --split 200 --queue all.q test.q --num 50 --output out blastn -query test.fastq.gz -db /data/refdb -num_threads 4 -out test.blast.m6 -outfmt "6 qseqid qlen qstart qend"
+hpc-blast --split 200 --queue all.q test.q --num 50 --tempdir out blastn -query test.fastq.gz -db /data/refdb -num_threads 4 -out test.blast.m6 -outfmt "6 qseqid qlen qstart qend"
 ```
 
