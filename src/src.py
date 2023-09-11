@@ -9,9 +9,8 @@ class HPCBlast(object):
 
     def __init__(self, args=None, blast_options=None):
         self.outfile = os.path.abspath(args.outfile)
-        temp = os.path.basename(tempfile.mktemp(prefix="hpc-blast_"))
-        self.tempdir = os.path.abspath(args.tempdir or os.path.join(
-            os.path.dirname(self.outfile), temp))
+        self.tempdir = os.path.abspath(args.tempdir or tempfile.mktemp(
+            prefix="hpc-blast_", dir=os.path.dirname(self.outfile)))
         self.args = args
         self._create_sge_args()
         self.btype = args.blast
@@ -180,8 +179,17 @@ class HPCBlast(object):
         self.mergs_res()
 
     def __del__(self):
+        tempath = ["chunks", "results", "logs", "hpc_blast.sh"]
         try:
             if self.finished and os.path.isdir(self.tempdir):
-                shutil.rmtree(self.tempdir)
+                for p in tempath:
+                    path = os.path.join(self.tempdir, p)
+                    if os.path.isdir(path):
+                        shutil.rmtree(path)
+                    else:
+                        os.remove(path)
+                else:
+                    if not os.listdir(self.tempdir):
+                        shutil.rmtree(self.tempdir)
         except:
             pass
