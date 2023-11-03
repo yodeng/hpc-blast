@@ -210,6 +210,6 @@ def HPCBlastArg():
             q = 0
         elif hasattr(args, "cpu") and hasattr(args, "outfile") and hasattr(args, "blast_db") and hasattr(args, "query"):
             break
-    if not args.blast.startswith("blast"):
+    if not os.path.basename(args.blast).startswith("blast"):
         parser.error("hpc-blast argument error")
     return args, unknown_args

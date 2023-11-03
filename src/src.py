@@ -152,7 +152,7 @@ class HPCBlast(object):
         conf.update_dict(**self.args.__dict__)
         if os.path.isfile(self.blast_scripts):
             mkdir(os.path.join(self.tempdir, "logs"))
-            loger = log(self.args.log, "info", name=runsge.__module__)
+            loger = log(self.args.log, "info")
             job = runsge(config=conf)
             job.set_rate(20)
             job.run()
