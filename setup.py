@@ -98,7 +98,7 @@ class Packages(object):
 
 def main():
     pkgs = Packages("hpcblast")
-    pkgs.install(ext=True)
+    pkgs.install(ext=False)
 
 
 if __name__ == "__main__":

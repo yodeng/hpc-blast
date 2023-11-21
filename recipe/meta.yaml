@@ -7,19 +7,28 @@ package:
 build:
     number: 0
     string: py39
-    script: {{ PYTHON }} -m pip install -vv .
+    script: {{ PYTHON }} -m pip install -vvv .
+    run_exports:
+      - {{ pin_subpackage('hpcblast', max_pin="x") }}
 
 source:
     path: ..
 
 requirements:
     host:
-        - python
-        - cython
-        - pip
+      - python <3.10
+      - pip
     run:
-        - runjob >=2.10.2
-        - blast
+      - python <3.10
+      - pip
+      - runjob >=2.10.5
+      - blast
+
+#test:
+#  imports:
+#    - hpcblast
+#  commands:
+#    - hpc-blast --version
 
 about:
     home: https://github.com/yodeng/hpc-blast

@@ -1,2 +1,1 @@
-cython
-runjob @ git+https://github.com/yodeng/runjob.git@master
+runjob>=2.10.5

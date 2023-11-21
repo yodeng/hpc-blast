@@ -5,3 +5,4 @@ tmp/
 build/
 test/
 *.egg-info/
+dist/
