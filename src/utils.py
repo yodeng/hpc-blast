@@ -17,6 +17,7 @@ from ._version import __version__
 
 
 class Zopen(object):
+
     def __init__(self, name,  mode="rb"):
         self.name = name
         self.mode = mode
@@ -40,6 +41,7 @@ class Zopen(object):
 
 
 class MultiFileOpen(object):
+
     def __init__(self, mode="rb", **infiles):
         self.info = infiles
         self.handler = {}

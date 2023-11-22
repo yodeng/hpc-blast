@@ -1,5 +1,10 @@
 # hpcblast
 
+
+[![Anaconda-Server Badge](https://anaconda.org/bioconda/hpcblast/badges/license.svg)](https://anaconda.org/bioconda/hpcblast)
+[![PyPI version](https://img.shields.io/pypi/v/hpcblast.svg?logo=pypi&logoColor=FFE873)](https://pypi.python.org/pypi/hpcblast)
+[![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](https://anaconda.org/bioconda/hpcblast)
+
 `hpcblast` software provides a simple and efficient method for running the `NCBI-BLAST+` suite program in localhost or the `HPC` environment (Sun Grid Engine). It splits the input sequence file and run all chunked tasks in parallel to accelerate the blast search speed. When there are many sequences in the input file for blast comparison and the running speed is slow, using hpcblast can significantly improve the performance. All of this can be easy done only by adding the `hpc-blast` command at the head of your blast command line.
 
 
