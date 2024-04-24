@@ -82,10 +82,9 @@ def get_fastx_type(fastx):
         curr_line = 0
         for line in fi:
             if line.startswith(b">"):
-                fastx_type = "fasta"
-                break
+                return "fasta"
             elif curr_line == 4:
-                break
+                return "fastq"
             curr_line += 1
         if curr_line == 0:
             sys.exit("No entries in %s" % (fastx))
@@ -170,6 +169,8 @@ def HPCBlastArg():
                         help='append hpc-blast log info to file, sys.stdout by default', metavar="<file>")
     parser.add_argument("--local", action='store_true',
                         help="run blast in localhost instead of sge", default=False)
+    parser.add_argument("--slurm", action='store_true',
+                        help="run blast in slurm", default=False)
     parser.add_argument('--version',
                         action='version', version="v" + __version__)
     parser.add_argument("-h", '--help',

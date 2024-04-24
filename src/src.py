@@ -12,7 +12,7 @@ class HPCBlast(object):
         self.tempdir = os.path.abspath(args.tempdir or tempfile.mktemp(
             prefix="hpc-blast_", dir=os.path.dirname(self.outfile)))
         self.args = args
-        self._create_sge_args()
+        self._create_args()
         self.btype = args.blast
         self.db = args.blast_db
         self.blast_exe = which(self.btype)
@@ -43,10 +43,12 @@ class HPCBlast(object):
                     e = s + n
                 self.blast_options[s:e+1] = [" ".join(op)]
 
-    def _create_sge_args(self):
+    def _create_args(self):
         self.args.mode = "sge"
         if self.args.local:
             self.args.mode = "local"
+        elif self.args.slurm:
+            self.args.mode = "slurm"
         self.args.logdir = os.path.join(self.tempdir, "logs")
         self.args.workdir = os.getcwd()
         self.args.startline = 0
