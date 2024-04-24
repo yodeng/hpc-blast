@@ -198,7 +198,7 @@ def HPCBlastArg():
             unknown_args.remove(a)
             q = 1
         elif c:
-            args.cpu = max(int(a), args.cpu)
+            args.cpu = args.cpu or int(a)
             c = 0
         elif o:
             unknown_args.remove(a)
