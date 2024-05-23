@@ -177,13 +177,15 @@ def HPCBlastArg():
                         action='help', help="show this help message and exit")
     parser.add_argument("blast", type=str,
                         help='blast command, required', metavar="<blast command>")
-    sge_group = parser.add_argument_group("sge arguments")
-    sge_group.add_argument("--queue", type=str,
-                           help='sge queue, multi-queue can be sepreated by whitespace, all access queue by default', nargs="*", metavar="<str>")
-    sge_group.add_argument("--cpu", type=int, default=1,
-                           help='cpu usage for sge, 1 by default, max(--cpu, -num_threads) will be used', metavar="<int>")
-    sge_group.add_argument("--memory", type=int, default=1,
-                           help='memory (GB) usage for sge, 1 by default', metavar="<int>")
+    batch_group = parser.add_argument_group("resource arguments")
+    batch_group.add_argument("--queue", type=str,
+                             help='sge queue, multi-queue can be sepreated by whitespace. (default: all accessed)', nargs="*", metavar="<str>")
+    batch_group.add_argument("--node", type=str, help="node for running, multi-node can be sepreated by whitespace. (default: all accessed)",
+                             nargs="*", metavar="<node>")
+    batch_group.add_argument("--cpu", type=int, default=1,
+                             help='cpu usage for sge, 1 by default, max(--cpu, -num_threads) will be used', metavar="<int>")
+    batch_group.add_argument("--memory", type=int, default=1,
+                             help='memory (GB) usage for sge, 1 by default', metavar="<int>")
     args, unknown_args = parser.parse_known_args()
     c, o, d, q = 0, 0, 0, 0
     for a in sys.argv[1:]:
