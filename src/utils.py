@@ -187,14 +187,20 @@ def HPCBlastArg():
     batch_group.add_argument("--memory", type=int, default=1,
                              help='memory (GB) usage for sge, 1 by default', metavar="<int>")
     args, unknown_args = parser.parse_known_args()
+    args.blast_db = []
     c, o, d, q = 0, 0, 0, 0
+    db_end = False
     for a in sys.argv[1:]:
+        if d and a.startswith("-"):
+            db_end = True
+            d = 0
         if a == "-num_threads":
             c = 1
         elif a == "-out":
             unknown_args.remove(a)
             o = 1
         elif a == "-db":
+            unknown_args.remove(a)
             d = 1
         elif a == "-query":
             unknown_args.remove(a)
@@ -207,13 +213,13 @@ def HPCBlastArg():
             args.outfile = a
             o = 0
         elif d:
-            args.blast_db = a
-            d = 0
+            args.blast_db.append(a)
+            unknown_args.remove(a)
         elif q:
             unknown_args.remove(a)
             args.query = a
             q = 0
-        elif hasattr(args, "cpu") and hasattr(args, "outfile") and hasattr(args, "blast_db") and hasattr(args, "query"):
+        elif hasattr(args, "cpu") and hasattr(args, "outfile") and hasattr(args, "blast_db") and hasattr(args, "query") and db_end:
             break
     if not os.path.basename(args.blast).startswith("blast"):
         parser.error("hpc-blast argument error")

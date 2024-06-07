@@ -14,7 +14,7 @@ class HPCBlast(object):
         self.args = args
         self._create_args()
         self.btype = args.blast
-        self.db = args.blast_db
+        self.db = sorted(set(args.blast_db), key=args.blast_db.index)
         self.blast_exe = which(self.btype)
         self.query = args.query
         self.blast_options = blast_options
@@ -125,26 +125,30 @@ class HPCBlast(object):
     def cache_blast_db(self):
         blastdb_path = which("blastdb_path")
         vmtouch = which("vmtouch")
-        cmd = ""
+        cmds = []
         if vmtouch and blastdb_path:
-            cmd = "%s -db %s -dbtype %s -getvolumespath | xargs %s -tqm 5G 2> /dev/null" % (
-                blastdb_path, self.db, blast_dbtype[os.path.basename(self.btype)], vmtouch)
-        return cmd
+            for db in self.db:
+                cmd = "%s -db %s -dbtype %s -getvolumespath | xargs %s -tqm 5G 2> /dev/null" % (
+                    blastdb_path, db, blast_dbtype[os.path.basename(self.btype)], vmtouch)
+                cmds.append(cmd)
+        return cmds
 
     def write_blast_sh(self, out="hpc_blast.sh"):
         self.blast_scripts = os.path.join(self.tempdir, out)
         self._quotation_outfmt()
         with open(self.blast_scripts, "w") as fo:
-            for _, fa in self.chunk_files.items():
-                if not os.path.getsize(fa):
-                    continue  # ignore empty query file
-                name = os.path.basename(fa).split(".")
-                result = os.path.join(
-                    self.tempdir, "results", "result."+name[1])
-                self.chunk_res.append(result)
-                cmdline = [self.blast_exe, ] + self.blast_options
-                cmdline.extend(["-out", result, "-query", fa])
-                fo.write(shlex.join(cmdline)+"\n")
+            for n, db in enumerate(self.db):
+                db = os.path.abspath(db)
+                for _, fa in self.chunk_files.items():
+                    if not os.path.getsize(fa):
+                        continue  # ignore empty query file
+                    name = os.path.basename(fa).split(".")
+                    result = os.path.join(
+                        self.tempdir, "results", f"result.db_{n}.{name[1]}")
+                    self.chunk_res.append(result)
+                    cmdline = [self.blast_exe, ] + self.blast_options
+                    cmdline.extend(["-out", result, "-query", fa, "-db", db])
+                    fo.write(shlex.join(cmdline)+"\n")
 
     def run_blast(self):
         mkdir(os.path.join(self.tempdir, "results"))
