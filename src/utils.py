@@ -10,6 +10,7 @@ import tempfile
 import argparse
 import subprocess
 
+from runjob.parser import *
 from runjob import log, runsge
 from runjob.config import Config
 
@@ -155,7 +156,9 @@ blast_dbtype = {
 
 def HPCBlastArg():
     parser = argparse.ArgumentParser(
-        description="hpc-blast <OPTIONS> <blast command>", add_help=False, allow_abbrev=False)
+        description="hpc-blast <OPTIONS> <blast command>",
+        formatter_class=CustomHelpFormatter,
+        add_help=False, allow_abbrev=False)
     ex_args = parser.add_mutually_exclusive_group(required=False)
     ex_args.add_argument("--split", type=int, default=10,
                          help='split query into num of chunks, 10 by default', metavar="<int>")
@@ -186,6 +189,7 @@ def HPCBlastArg():
                              help='cpu usage for sge, 1 by default, max(--cpu, -num_threads) will be used', metavar="<int>")
     batch_group.add_argument("--memory", type=int, default=1,
                              help='memory (GB) usage for sge, 1 by default', metavar="<int>")
+    rate_parser(parser)
     args, unknown_args = parser.parse_known_args()
     args.blast_db = []
     c, o, d, q = 0, 0, 0, 0

@@ -160,7 +160,6 @@ class HPCBlast(object):
             mkdir(os.path.join(self.tempdir, "logs"))
             loger = log(self.args.log, "info")
             job = runsge(config=conf)
-            job.set_rate(20)
             job.run()
             loger.info("hpc blast finished")
 
