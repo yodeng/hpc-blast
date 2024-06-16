@@ -154,6 +154,47 @@ blast_dbtype = {
 }
 
 
+def rate_parser(p):
+    rate_args = p.add_argument_group("rate arguments")
+    rate_args.add_argument('--retry', help="retry N times of the error job, 0 or minus means do not re-submit.",
+                           type=int, default=0, metavar="<int>")
+    rate_args.add_argument('--retry-sec', help="retry the error job after N seconds.",
+                           type=int, default=2, metavar="<int>")
+    rate_args.add_argument('--max-check', help="maximal number of job status checks per second, fractions allowed.",
+                           type=float, default=DEFAULT_MAX_CHECK_PER_SEC, metavar="<float>")
+    rate_args.add_argument('--max-submit', help="maximal number of jobs submited per second, fractions allowed.",
+                           type=float, default=DEFAULT_MAX_SUBMIT_PER_SEC, metavar="<float>")
+
+
+def resource_parser(parser):
+    resource_args = parser.add_argument_group("resource arguments")
+    resource_args.add_argument("--queue", type=str, help="queue/partition for running, multi-queue can be sepreated by whitespace. (default: all accessed)",
+                               nargs="*", metavar="<queue>")
+    resource_args.add_argument("--node", type=str, help="node for running, multi-node can be sepreated by whitespace. (default: all accessed)",
+                               nargs="*", metavar="<node>")
+    resource_args.add_argument("--cpu", type=int,
+                               help="max cpu number used.", default=1, metavar="<int>")
+    resource_args.add_argument("--memory", type=int,
+                               help="max memory used (GB).", default=1, metavar="<int>")
+
+
+def hpcblast_rate_resource_args(args):
+    parser = argparse.ArgumentParser(allow_abbrev=False)
+    resource_parser(parser)
+    rate_parser(parser)
+    default_values = {act.dest: act.default for act in parser._actions}
+    out = []
+    args_dict = args.__dict__ if isinstance(
+        args, argparse.Namespace) else dict(args)
+    for dest, value in args_dict.items():
+        if dest in default_values and value != default_values[dest]:
+            if isinstance(value, list):
+                value = " ".join(value)
+            dest = dest.replace("_", "-")
+            out.extend([f"--{dest}", value])
+    return " ".join(map(str, out))
+
+
 def HPCBlastArg():
     parser = argparse.ArgumentParser(
         description="hpc-blast <OPTIONS> <blast command>",
@@ -180,15 +221,7 @@ def HPCBlastArg():
                         action='help', help="show this help message and exit")
     parser.add_argument("blast", type=str,
                         help='blast command, required', metavar="<blast command>")
-    batch_group = parser.add_argument_group("resource arguments")
-    batch_group.add_argument("--queue", type=str,
-                             help='sge queue, multi-queue can be sepreated by whitespace. (default: all accessed)', nargs="*", metavar="<str>")
-    batch_group.add_argument("--node", type=str, help="node for running, multi-node can be sepreated by whitespace. (default: all accessed)",
-                             nargs="*", metavar="<node>")
-    batch_group.add_argument("--cpu", type=int, default=1,
-                             help='cpu usage for sge, 1 by default, max(--cpu, -num_threads) will be used', metavar="<int>")
-    batch_group.add_argument("--memory", type=int, default=1,
-                             help='memory (GB) usage for sge, 1 by default', metavar="<int>")
+    resource_parser(parser)
     rate_parser(parser)
     args, unknown_args = parser.parse_known_args()
     args.blast_db = []
