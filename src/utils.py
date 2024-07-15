@@ -172,6 +172,8 @@ def resource_parser(parser):
                                nargs="*", metavar="<queue>")
     resource_args.add_argument("--node", type=str, help="node for running, multi-node can be sepreated by whitespace. (default: all accessed)",
                                nargs="*", metavar="<node>")
+    resource_args.add_argument("--round-node", action="store_true", help="round all define node per job for load balance",
+                               default=False)
     resource_args.add_argument("--cpu", type=int,
                                help="max cpu number used.", default=1, metavar="<int>")
     resource_args.add_argument("--memory", type=int,
