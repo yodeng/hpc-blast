@@ -217,6 +217,8 @@ def HPCBlastArg():
                         help="run blast in localhost instead of sge", default=False)
     parser.add_argument("--slurm", action='store_true',
                         help="run blast in slurm", default=False)
+    parser.add_argument('--debug', action='store_true',
+                        help='log debug', default=False)
     parser.add_argument('--version',
                         action='version', version="v" + __version__)
     parser.add_argument("-h", '--help',

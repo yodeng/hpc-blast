@@ -22,6 +22,7 @@ class HPCBlast(object):
         self.chunk_res = []
         self.blast_scripts = ""
         self.finished = False
+        self.loger = log(args.log, "info")
         if not self.blast_exe or not "blast" in os.path.basename(self.blast_exe):
             raise ArgumentsError(
                 "blast not found in this environment")
@@ -158,20 +159,17 @@ class HPCBlast(object):
         conf.update_dict(**self.args.__dict__)
         if os.path.isfile(self.blast_scripts):
             mkdir(os.path.join(self.tempdir, "logs"))
-            loger = log(self.args.log, "info")
             job = runsge(config=conf)
             job.run()
-            loger.info("hpc blast finished")
 
     def mergs_res(self, block_size=65536):
         if self.chunk_res:
+            self.loger.info("gather all chunk results")
             with open(self.outfile, "wb") as fo:
                 for f in self.chunk_res:
                     with open(f, "rb") as fi:
-                        buf = fi.read(block_size)
-                        while buf:
-                            fo.write(buf)
-                            buf = fi.read(block_size)
+                        shutil.copyfileobj(fi, fo)
+            self.loger.info("hpc blast finished")
             self.finished = True
 
     def run(self):
