@@ -184,16 +184,20 @@ def hpcblast_rate_resource_args(args):
     parser = argparse.ArgumentParser(allow_abbrev=False)
     resource_parser(parser)
     rate_parser(parser)
-    default_values = {act.dest: act.default for act in parser._actions}
     out = []
-    args_dict = args.__dict__ if isinstance(
+    args_map = args.__dict__ if isinstance(
         args, argparse.Namespace) else dict(args)
-    for dest, value in args_dict.items():
-        if dest in default_values and value != default_values[dest]:
+    for act in parser._actions:
+        dest = act.dest
+        if dest in args_map and args_map[dest] != act.default:
+            value = args_map[dest]
             if isinstance(value, list):
                 value = " ".join(value)
             dest = dest.replace("_", "-")
-            out.extend([f"--{dest}", value])
+            if act.nargs:
+                out.extend([f"--{dest}", value])
+            else:
+                out.append(f"--{dest}")
     return " ".join(map(str, out))
 
 
