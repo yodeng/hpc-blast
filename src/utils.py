@@ -154,8 +154,8 @@ blast_dbtype = {
 }
 
 
-def rate_parser(p):
-    rate_args = p.add_argument_group("rate arguments")
+def rate_parser(parser):
+    rate_args = parser.add_argument_group("rate arguments")
     rate_args.add_argument('--retry', help="retry N times of the error job, 0 or minus means do not re-submit.",
                            type=int, default=0, metavar="<int>")
     rate_args.add_argument('--retry-sec', help="retry the error job after N seconds.",
@@ -180,10 +180,22 @@ def resource_parser(parser):
                                help="max memory used (GB).", default=1, metavar="<int>")
 
 
+def control_parser(parser):
+    control_args_parser = parser.add_argument_group("control arguments")
+    ex_args = control_args_parser.add_mutually_exclusive_group(required=False)
+    ex_args.add_argument("--split", type=int, default=10,
+                         help='split query into num of chunks, 10 by default', metavar="<int>")
+    ex_args.add_argument("--size", type=int,
+                         help='split query into multi chunks with N sequences', metavar="<int>")
+    control_args_parser.add_argument("--num", type=int,
+                                     help='max number of chunks run parallelly, all chunks by default', metavar="<int>")
+
+
 def hpcblast_rate_resource_args(args):
     parser = argparse.ArgumentParser(allow_abbrev=False)
     resource_parser(parser)
     rate_parser(parser)
+    # control_parser(parser)
     out = []
     args_map = args.__dict__ if isinstance(
         args, argparse.Namespace) else dict(args)
@@ -194,10 +206,10 @@ def hpcblast_rate_resource_args(args):
             if isinstance(value, list):
                 value = " ".join(value)
             dest = dest.replace("_", "-")
-            if act.nargs:
-                out.extend([f"--{dest}", value])
-            else:
+            if act.nargs == 0:
                 out.append(f"--{dest}")
+            else:
+                out.extend([f"--{dest}", value])
     return " ".join(map(str, out))
 
 
@@ -206,13 +218,7 @@ def HPCBlastArg():
         description="hpc-blast <OPTIONS> <blast command>",
         formatter_class=CustomHelpFormatter,
         add_help=False, allow_abbrev=False)
-    ex_args = parser.add_mutually_exclusive_group(required=False)
-    ex_args.add_argument("--split", type=int, default=10,
-                         help='split query into num of chunks, 10 by default', metavar="<int>")
-    ex_args.add_argument("--size", type=int,
-                         help='split query into multi chunks with N sequences', metavar="<int>")
-    parser.add_argument("--num", type=int,
-                        help='max number of chunks run parallelly, all chunks by default', metavar="<int>")
+    control_parser(parser)
     parser.add_argument("--tempdir", type=str, required=False,
                         help='hpc blast temp directory', metavar="<dir>")
     parser.add_argument("--log", type=str,
