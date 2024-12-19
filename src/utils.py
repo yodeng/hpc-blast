@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+import re
 import sys
 import gzip
 import shlex
@@ -125,6 +126,20 @@ def is_exe(file_path):
     )
 
 
+def human_size_parse(size):
+    s, u = re.search("(\d+(?:\.\d+)?)(\D*)", str(size)).group(1, 2)
+    s = float(s)
+    if s < 1 and not u:
+        u = "M"
+    if u:
+        for unit in ['B', 'K', 'M', 'G', 'T', 'P', 'E', 'Z']:
+            if u.upper().strip()[0] == unit:
+                return int(s)
+            s *= 1024
+    else:
+        return int(s)
+
+
 def callcmd(cmd, run=True, verbose=False):
     if not cmd:
         return
@@ -187,6 +202,8 @@ def control_parser(parser):
                          help='split query into num of chunks, 10 by default', metavar="<int>")
     ex_args.add_argument("--size", type=int,
                          help='split query into multi chunks with N sequences', metavar="<int>")
+    ex_args.add_argument("--filesize", type=str,
+                         help="split query into multi chunks with define filesize, 1G, 500M", metavar="<str/float>")
     control_args_parser.add_argument("--num", type=int,
                                      help='max number of chunks run parallelly, all chunks by default', metavar="<int>")
 

@@ -55,9 +55,9 @@ class HPCBlast(object):
         self.args.startline = 0
         self.args.groups = 1
 
-    def split_fastx_by_size(self, size=0):
+    def split_fastx_by_seqnum(self, seq_num=0):
         self.chunk_files = {}
-        if size <= 0:
+        if seq_num <= 0:
             return
         if os.path.isfile(self.query):
             mkdir(os.path.join(self.tempdir, "chunks"))
@@ -67,7 +67,7 @@ class HPCBlast(object):
             if fx == "fasta":
                 for line in fi:
                     if line.startswith(b">"):
-                        n, mod = divmod(s, size)
+                        n, mod = divmod(s, seq_num)
                         s += 1
                         if mod == 0:
                             if fh:
@@ -81,7 +81,7 @@ class HPCBlast(object):
                 for i, line in enumerate(fi):
                     x = i % 4
                     if x == 0:
-                        n, mod = divmod(s, size)
+                        n, mod = divmod(s, seq_num)
                         s += 1
                         if mod == 0:
                             if fh:
@@ -94,6 +94,75 @@ class HPCBlast(object):
                     elif x > 1:
                         continue
                     fh.write(line)
+        if fh:
+            fh.close()
+
+    def split_fastx_by_filesize(self, file_size=0):
+        if file_size <= 0:
+            return
+        if os.path.isfile(self.query):
+            mkdir(os.path.join(self.tempdir, "chunks"))
+        fx = get_fastx_type(self.query)
+        s = n = fh = 0
+        with Zopen(self.query, mode="rb") as fi:
+            seq = name = b""
+            if fx == "fasta":
+                for line in fi:
+                    if line.startswith(b">"):
+                        if not seq:
+                            fo = os.path.join(
+                                self.tempdir, "chunks", "split.%05d.fa" % n)
+                            self.chunk_files[n] = fo
+                            fh = open(fo, "wb")
+                            n += 1
+                        else:
+                            if s and s + len(seq) + len(name) > file_size:
+                                fh.close()
+                                fo = os.path.join(
+                                    self.tempdir, "chunks", "split.%05d.fa" % n)
+                                self.chunk_files[n] = fo
+                                fh = open(fo, "wb")
+                                n += 1
+                                s = 0
+                            s += fh.write(name+seq)
+                        seq = b""
+                        name = line
+                    else:
+                        seq += line
+            elif fx == "fastq":
+                for i, line in enumerate(fi):
+                    x = i % 4
+                    if x == 0:
+                        if not seq:
+                            fo = os.path.join(
+                                self.tempdir, "chunks", "split.%05d.fa" % n)
+                            self.chunk_files[n] = fo
+                            fh = open(fo, "wb")
+                            n += 1
+                        else:
+                            if s and s + len(seq) + len(name) > file_size:
+                                fh.close()
+                                fo = os.path.join(
+                                    self.tempdir, "chunks", "split.%05d.fa" % n)
+                                self.chunk_files[n] = fo
+                                fh = open(fo, "wb")
+                                n += 1
+                                s = 0
+                            s += fh.write(name+seq)
+                        seq = b""
+                        name = line
+                    elif x == 1:
+                        seq += line
+            if name and seq:
+                if s and s + len(seq) + len(name) > file_size:
+                    fh.close()
+                    fo = os.path.join(
+                        self.tempdir, "chunks", "split.%05d.fa" % n)
+                    self.chunk_files[n] = fo
+                    fh = open(fo, "wb")
+                    n += 1
+                    s = 0
+                s += fh.write(name+seq)
         if fh:
             fh.close()
 
@@ -174,7 +243,10 @@ class HPCBlast(object):
 
     def run(self):
         if self.args.size:
-            self.split_fastx_by_size(self.args.size)
+            self.split_fastx_by_seqnum(self.args.size)
+        elif self.args.filesize:
+            filesize = human_size_parse(self.args.filesize)
+            self.split_fastx_by_filesize(filesize)
         else:
             self.split_fastx_by_part(self.args.split)
         self.write_blast_sh()
