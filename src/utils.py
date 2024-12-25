@@ -267,7 +267,7 @@ def HPCBlastArg():
         elif a == "-out":
             unknown_args.remove(a)
             o = 1
-        elif a == "-db":
+        elif a.lstrip("-") in ["db", "database"]:
             unknown_args.remove(a)
             d = 1
         elif a == "-query":

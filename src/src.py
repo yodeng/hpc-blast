@@ -223,7 +223,7 @@ class HPCBlast(object):
     def run_blast(self):
         mkdir(os.path.join(self.tempdir, "results"))
         self.args.jobfile = self.blast_scripts
-        self.args.force = True  # force to resubmit
+        # self.args.force = True  # force to resubmit
         conf = Config()
         conf.update_dict(**self.args.__dict__)
         if os.path.isfile(self.blast_scripts):
