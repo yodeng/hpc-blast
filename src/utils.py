@@ -44,17 +44,17 @@ class Zopen(object):
 
 class MultiFileOpen(object):
 
-    def __init__(self, mode="rb", **infiles):
+    def __init__(self, mode="rb", *infiles):
         self.info = infiles
         self.handler = {}
         self.mode = mode
 
     def __enter__(self):
-        for k, f in self.info.items():
+        for n, f in enumerate(self.info):
             if f.endswith(".gz"):
-                self.handler[int(k)] = gzip.open(f, self.mode)
+                self.handler[n] = gzip.open(f, self.mode)
             else:
-                self.handler[int(k)] = open(f, self.mode)
+                self.handler[n] = open(f, self.mode)
         return self.handler
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -182,7 +182,8 @@ def rate_parser(parser):
 
 
 def resource_parser(parser):
-    resource_args = parser.add_argument_group("resource arguments")
+    resource_args = parser.add_argument_group(
+        "resource arguments (per chunk job)")
     resource_args.add_argument("--queue", type=str, help="queue/partition for running, multi-queue can be sepreated by whitespace. (default: all accessed)",
                                nargs="*", metavar="<queue>")
     resource_args.add_argument("--node", type=str, help="node for running, multi-node can be sepreated by whitespace. (default: all accessed)",
